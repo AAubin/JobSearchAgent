@@ -12,7 +12,8 @@ Pour que les outils fonctionnent tous, il est nécessaire de:
   - ANTHROPIC_API_KEY (clé API pour le LLM avec des crédits disponibles)
   - FRANCE_TRAVAIL_CLIENT_ID
   - FRANCE_TRAVAIL_CLIENT_SECRET
-  Les infos de l'api France Travail se trouvent en créant une application sur le site francetravail.io (mon espace) et en ajoutant l'api "Offres d'emploiv2" dans les api autorisées.
+  
+Les infos de l'api France Travail se trouvent en créant une application sur le site francetravail.io (mon espace) et en ajoutant l'api "Offres d'emploiv2" dans les api autorisées.
  
 ## Usage
 ```

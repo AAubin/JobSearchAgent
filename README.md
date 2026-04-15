@@ -9,5 +9,6 @@ L'agent à les outils pour:
 ## Usage
 ```
 pip install -r requirements.txt
+copy your resume in project folder name as cv.pdf
 python src/main.py
 ```

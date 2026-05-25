@@ -8,9 +8,6 @@ from tools.veille import rechercher_offres
 from tools.motivation import rediger_lettre_motivation
 from tools.entretien import preparer_entretien
 
-from dotenv import load_dotenv
-load_dotenv()
-
 def creer_agent() -> CompiledStateGraph:
     llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0)
     tools = [rechercher_offres, optimiser_cv, rediger_lettre_motivation, preparer_entretien]

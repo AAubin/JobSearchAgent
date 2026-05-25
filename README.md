@@ -6,9 +6,17 @@ L'agent à les outils pour:
 - créer une lettre de motivation au format word
 - proposer des conseils pour préparer un entretien
 
+Pour que les outils fonctionnent tous, il est nécessaire de:
+- Copier son cv dans le répertoire du projet au format pdf, sous le nom cv.pdf
+- Créer un fichier .env avec les champs suivants:
+  - ANTHROPIC_API_KEY (clé API pour le LLM avec des crédits disponibles)
+  - FRANCE_TRAVAIL_CLIENT_ID
+  - FRANCE_TRAVAIL_CLIENT_SECRET
+  
+Les infos de l'api France Travail se trouvent en créant une application sur le site francetravail.io (mon espace) et en ajoutant l'api "Offres d'emploiv2" dans les api autorisées.
+ 
 ## Usage
 ```
 pip install -r requirements.txt
-copy your resume in project folder name as cv.pdf
 python src/main.py
 ```

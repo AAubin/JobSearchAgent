@@ -22,6 +22,7 @@ def get_token_france_travail() -> str:
         "scope": "api_offresdemploiv2 o2dsoffre",
     }
     r = requests.post(url, params=params, data=data)
+    r.raise_for_status()
     return r.json()["access_token"]
 
 def _rechercher_par_departement(token: str, poste: str, departement: str, nb_resultats: int) -> list:
@@ -31,7 +32,10 @@ def _rechercher_par_departement(token: str, poste: str, departement: str, nb_res
     if departement:
         params["departement"] = departement
     r = requests.get(url, headers=headers, params=params)
-    return r.json().get("resultats", [])
+    r.raise_for_status()
+    if not r.text:
+        return []
+    return [o for o in r.json().get("resultats", []) if not o.get("alternance", False)]
 
 
 @tool

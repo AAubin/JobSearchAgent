@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 cv.pdf
+lettres/*
+test_api_francetravail.py

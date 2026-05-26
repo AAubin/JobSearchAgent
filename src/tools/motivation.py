@@ -5,6 +5,8 @@ from langchain_anthropic import ChatAnthropic
 from dotenv import load_dotenv
 from docx import Document
 from docx.shared import Pt, Cm
+from database import save_letter
+from prompt_loader import load_prompt
 
 from .utils import charger_cv
 
@@ -39,6 +41,9 @@ def _sauvegarder_docx(contenu: str, nom_entreprise: str) -> Path:
     doc.save(chemin)
     return chemin
 
+def _rechercher_entreprise(nom_entreprise: str) -> str:
+    
+    return f"Informations sur {nom_entreprise} : ... (fonction à implémenter)"
 
 @tool
 def rediger_lettre_motivation(description_offre: str, nom_entreprise: str = "") -> str:
@@ -52,23 +57,12 @@ def rediger_lettre_motivation(description_offre: str, nom_entreprise: str = "") 
         nom_entreprise: nom de l'entreprise (optionnel)
     """
     cv = charger_cv()
-    prompt = f"""Tu es un expert en recrutement français.
-Rédige une lettre de motivation professionnelle en français (300-400 mots).
-
-CV du candidat :
-{cv}
-
-Offre visée :
-Entreprise : {nom_entreprise or 'Non précisée'}
-Description : {description_offre}
-
-Consignes :
-- Ton professionnel mais naturel
-- Mets en avant les compétences du CV qui correspondent à l'offre
-- Structure : accroche → compétences pertinentes → motivation → conclusion
-- Évite les formules génériques comme "Passionné par..."
-- Termine par une formule de politesse adaptée au contexte français"""
+    prompt_data = load_prompt("motivation")
+    prompt = prompt_data["template"].format(cv=cv, nom_entreprise=nom_entreprise or 'Non précisée', description_offre=description_offre)
 
     lettre = llm.invoke(prompt).content
     chemin = _sauvegarder_docx(lettre, nom_entreprise)
+    nb_mots = len(lettre.split())
+    company_is_present = nom_entreprise.strip().lower() in lettre.lower() if nom_entreprise else False
+    save_letter(nom_entreprise, chemin, nb_mots, company_is_present)
     return f"{lettre}\n\n---\nLettre sauvegardée : {chemin}"

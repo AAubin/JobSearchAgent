@@ -1,6 +1,7 @@
 import requests
 from langchain_core.tools import tool
 import os
+from database import save_offer
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -73,8 +74,9 @@ def rechercher_offres(poste: str, localisation: str = "", nb_resultats: int = 5)
         for o in toutes_offres:
             lignes.append(
                 f"- {o['intitule']} | {o.get('entreprise', {}).get('nom', 'Entreprise N/A')}"
-                f" | {o.get('lieuTravail', {}).get('libelle', '')} | {o['id']}"
+                f" | {o.get('lieuTravail', {}).get('libelle', '')} | {o['id']} | [Lien]({o.get('lienOffre', '')})"
             )
+            save_offer(o['id'], o['intitule'], o.get('entreprise', {}).get('nom', ''), o.get('lieuTravail', {}).get('libelle', ''), poste, o.get('lienOffre', ''))
         return "\n".join(lignes)
 
     except Exception as e:

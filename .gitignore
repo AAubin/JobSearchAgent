@@ -4,3 +4,4 @@ __pycache__/
 cv.pdf
 lettres/*
 test_api_francetravail.py
+jobsearch.db

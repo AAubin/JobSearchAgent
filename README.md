@@ -27,7 +27,9 @@ Pour que les outils fonctionnent tous, il est nécessaire de:
   - LANGCHAIN_PROJECT
   - TAVILY_API_KEY
   
-Les infos de l'api France Travail se trouvent en créant une application sur le site francetravail.io (mon espace) et en ajoutant l'api "Offres d'emploiv2" dans les api autorisées. Les variables Langchain sont utilisées pour le suivi des tokens consommées. La clé TAVILY pour la recherche d'informations sur l'entreprise.
+Les infos de l'api France Travail se trouvent en créant une application sur le site francetravail.io (mon espace) et en ajoutant l'api "Offres d'emploiv2" dans les api autorisées. 
+Les variables Langchain sont à créer et obtenir sur smith.langchain.com. 
+La clé TAVILY est à créer sur app.tavily.com.
  
 ## Usage
 ```

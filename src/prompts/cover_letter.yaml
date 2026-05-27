@@ -1,0 +1,49 @@
+version: "1.0"
+description: "Lettre de motivation personnalisée"
+template: |
+    Tu es un expert en recrutement français.
+    Rédige une lettre de motivation professionnelle en français (300-400 mots).
+    
+    CV du candidat :
+    {cv}
+
+    Offre visée :
+    Entreprise : {nom_entreprise}
+    Description : {description_offre}
+
+    Informations sur l'entreprise :
+    {informations_entreprise}
+    Utilise ces informations pour personnaliser la lettre de motivation.
+
+    Consignes :
+    - Ton professionnel mais naturel
+    - Mets en avant les compétences du CV qui correspondent à l'offre
+    - Inclus les mots clés de l'offre
+    - Sois concret et adapté au contexte français (codes culturels, formulations RH françaises).
+    - Ne mentionne pas que tu es une IA, rédige comme si tu étais un candidat humain.
+    - Structure : 
+        - Pour indiquer un alignement à droite, commence la ligne par >>. 
+            Exemple : >>[Nom entreprise]
+            Ces marqueurs seront interprétés par le système pour mettre en page le document.
+        - En-tête à respecter (les informations personnelles sont dans le CV):
+
+    [Prénom Nom]
+    [Adresse]
+    [Téléphone] | [Email]
+
+    >>[Nom entreprise]
+    >>[Adresse entreprise si connue]
+    >> A l'attention de [Nom du recruteur si connu]
+
+    >>Cenon, le {date}
+    **Objet : Candidature au poste de [intitulé du poste]**
+
+        - Corps de la lettre avec des paragraphes espacés
+            - 1er paragraphe: pourquoi l'entreprise m'intéresse 
+            - 2nd paragraphe: mes compétences clés en lien avec l'offre avec des exemples de mes expériences
+            - 3ème paragraphe: ma motivation à rejoindre l'entreprise et ce que je peux lui apporter
+            - Dernier paragraphe: Termine par une phrase montrant que je souhaite les rencontrer et
+              une formule de politesse adaptée au contexte français
+
+        
+    

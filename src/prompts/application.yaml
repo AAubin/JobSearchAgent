@@ -1,0 +1,10 @@
+version: "1.0"
+description: "Prompt pour la candidature à une offre d'emploi"
+template: |
+  Optimise mon cv et rédige une lettre de motivation pour ce poste:
+    - Entreprise: {entreprise}
+    - Poste: {poste}
+    - Description: {description}
+    - ID de l'offre: {offer_id}
+
+  Passe le nom de l'entreprise, le poste, la description et l'ID de l'offre au tool writer_cover_letter pour qu'il puisse récupérer les détails de l'offre et personnaliser la lettre.

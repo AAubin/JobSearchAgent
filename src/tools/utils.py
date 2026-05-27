@@ -1,7 +1,10 @@
+import logging
+logging.getLogger("pdfminer").setLevel(logging.ERROR)
+
 import pdfplumber
 from pathlib import Path
 
-def charger_cv(chemin: str = "cv.pdf") -> str:
+def load_resume(chemin: str = "cv.pdf") -> str:
     p = Path(chemin)
     if not p.exists():
         return "CV non trouvé."

@@ -17,7 +17,7 @@ def init_db():
             localisation TEXT,
             description TEXT,
             link TEXT,
-            interested INTEGER DEFAULT NULL,
+            interested INTEGER DEFAULT 0,
             date_recorded DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -50,7 +50,7 @@ def init_db():
             date_application DATETIME DEFAULT CURRENT_TIMESTAMP,
             to_follow_up BOOLEAN DEFAULT 1,
             date_follow_up DATETIME,
-            statut TEXT DEFAULT 'waiting',
+            statut TEXT DEFAULT 'En cours',
             UNIQUE (offer_id, id_letter)
         )
     ''')
@@ -79,6 +79,23 @@ def update_offer_interest(offer_id, interested):
     ''', (interested, offer_id))
     conn.commit()
     conn.close()
+
+def get_all_offers():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        SELECT  offer_id, position, entreprise, localisation, interested, link, date_recorded
+        FROM offers
+    ''')
+    results = c.fetchall()
+    conn.close()
+    if results:
+        keys = ["offer_id", "Intitulé", "Entreprise", "Lieu", "Intéressé", "Lien", "Recherché le"]
+        offers = [dict(zip(keys, r)) for r in results]
+        for offer in offers:
+            offer['Intéressé'] = bool(offer['Intéressé']) if offer['Intéressé'] is not None else None
+        return offers
+    return []
 
 def get_offer_by_id(offer_id):
     conn = sqlite3.connect(DB_PATH)
@@ -116,6 +133,7 @@ def get_existing_offer_ids(offer_ids: list) -> set:
     conn.close()
     return result
 
+
 def save_letter(entreprise, path, nb_words=0, entreprise_is_present=False):
     ts = datetime.now().isoformat()
     conn = sqlite3.connect(DB_PATH)
@@ -135,7 +153,7 @@ def get_last_letter_id():
     conn.close()
     return result[0] if result else None
 
-def rate_letter(id_letter, note):
+def update_letter_rating(id_letter, note):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''
@@ -146,6 +164,7 @@ def rate_letter(id_letter, note):
     conn.commit()
     conn.close()
 
+
 def save_session(date_start, date_end, token_count, cost_usd):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -154,7 +173,35 @@ def save_session(date_start, date_end, token_count, cost_usd):
         VALUES (?, ?, ?, ?, ?)
     ''', (date_start, date_end, token_count['input_tokens'], token_count['output_tokens'], cost_usd))
     conn.commit()
+    session_id = c.lastrowid
     conn.close()
+    return session_id
+
+def update_session(session_id, date_end, token_count, cost_usd):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        UPDATE sessions
+        SET date_end = ?, inputs_tokens = ?, output_tokens = ?, cost_usd = ?
+        WHERE id_session = ?
+    ''', (date_end, token_count['input_tokens'], token_count['output_tokens'], cost_usd, session_id))
+    conn.commit()
+    conn.close()
+
+def get_all_sessions():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        SELECT id_session, date_start, date_end, inputs_tokens, output_tokens, cost_usd
+        FROM sessions
+        ORDER BY date_start DESC
+    ''')
+    results = c.fetchall()
+    conn.close()
+    if results:
+        keys = ["id_session", "date_start", "date_end", "input_tokens", "output_tokens", "cost_usd"]
+        return [dict(zip(keys, r)) for r in results]
+    return []
 
 def save_application(offerDB_id, id_letter):
     ts = datetime.now().isoformat()
@@ -168,3 +215,30 @@ def save_application(offerDB_id, id_letter):
     conn.commit()
     conn.close()
 
+def get_all_applications():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        SELECT o.offer_id, o.position, o.entreprise, o.localisation, o.link, o.source, l.id_letter, l.path, 
+               a.id_application, a.date_application, a.to_follow_up, a.date_follow_up, a.statut
+        FROM applications a
+        LEFT JOIN offers o ON a.offer_id = o.offer_id
+        LEFT JOIN letters l ON a.id_letter = l.id_letter
+    ''')
+    results = c.fetchall()
+    conn.close()
+    if results:
+        keys = ["offer_id", "Poste", "Entreprise", "Lieu", "Lien", "Source", "id_letter", "path",
+                "id_application", "Postulé le", "A relancer", "Date de relance", "Statut"]
+        return [dict(zip(keys, r)) for r in results]
+
+def update_application(id_application, to_follow_up, statut):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''
+        UPDATE applications
+        SET to_follow_up = ?, statut = ?
+        WHERE id_application = ?
+    ''', (to_follow_up, statut, id_application))
+    conn.commit()
+    conn.close()

@@ -14,7 +14,6 @@ Si l'agent rédige une lettre de motivation il considère qu'une candidature a �
 Après chaque session, le nombre de tokens utilisés est récupéré et le coût est calculé. Ces informations sont également stockés dans la database
 
 Après chaque recherche d'offre, l'agent demande à l'utilisateur d'indiquer si les offres l'intéressent, et propose de créer une candidature pour l'une de son choix. Après avoir créer une lettre, il vérifie son nombre de mots, si le nom de l'entreprise est bien dedans, et demande à l'utilisateur de la noter.
-Toutes ces informations seront exploités par la suite lors de la création d'une IHM (de même que le tableau de suivi)
 
 Pour que les outils fonctionnent tous, il est nécessaire de:
 - Copier son cv dans le répertoire du projet au format pdf, sous le nom cv.pdf
@@ -30,9 +29,11 @@ Pour que les outils fonctionnent tous, il est nécessaire de:
 Les infos de l'api France Travail se trouvent en créant une application sur le site francetravail.io (mon espace) et en ajoutant l'api "Offres d'emploiv2" dans les api autorisées. 
 Les variables Langchain sont à créer et obtenir sur smith.langchain.com. 
 La clé TAVILY est à créer sur app.tavily.com.
- 
+
+L'app streamlit permet d'échanger avec l'agent, et de visualiser les offres sauvegardées, le tableau de suivi des candidatures, et les sessions.
+
 ## Usage
 ```
 pip install -r requirements.txt
-python src/main.py
+streamlit run app.py
 ```

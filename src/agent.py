@@ -9,7 +9,7 @@ from tools.cover_letter import write_cover_letter
 from tools.interview import interview_advice
 from tools.add_manual_offer import add_manual_offer
 
-from prompt_loader import load_prompt
+from utils import load_prompt
 
 def creer_agent() -> CompiledStateGraph:
     llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0)

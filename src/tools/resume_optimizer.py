@@ -1,8 +1,7 @@
 from langchain_core.tools import tool
 from langchain_anthropic import ChatAnthropic
 from dotenv import load_dotenv
-from .utils import load_resume
-from prompt_loader import load_prompt
+from utils import load_prompt, load_resume
 
 load_dotenv()
 llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.3)

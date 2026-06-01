@@ -102,4 +102,6 @@ def get_offer_details(france_travail_id: str) -> dict:
     headers = {"Authorization": f"Bearer {token}"}
     r = requests.get(url, headers=headers)
     r.raise_for_status()
+    if not r.text:
+        return {}
     return r.json()

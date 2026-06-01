@@ -9,15 +9,13 @@ from docx import Document
 from docx.shared import Pt, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from database import save_letter, save_application, get_last_letter_id
-from prompt_loader import load_prompt
-
-from .utils import load_resume
+from utils import load_prompt, load_resume
 
 load_dotenv()
 llm_letter = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.3)
 llm_profile = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.0)
 
-OUTPUT_DIR = Path(__file__).parent.parent.parent / "lettres"
+OUTPUT_DIR = Path(__file__).parent.parent.parent  / "lettres"
 
 def _save_docx(contenu: str, nom_entreprise: str) -> Path:
     OUTPUT_DIR.mkdir(exist_ok=True)

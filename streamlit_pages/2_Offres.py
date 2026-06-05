@@ -3,7 +3,7 @@ sys.path.insert(0, 'src')
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from database import get_all_offers, update_offer_interest
+from database import get_all_offers, update_offers
 
 def apply_to_selected_offers():
     offers = st.session_state.get('updated_offers')
@@ -41,7 +41,7 @@ updated_offers = st.data_editor(
     column_config={
         "Postuler ?": st.column_config.CheckboxColumn(),
         "Intitulé": st.column_config.TextColumn(disabled=True),
-        "Entreprise": st.column_config.TextColumn(disabled=True),
+        "Entreprise": st.column_config.TextColumn(),
         "Lieu": st.column_config.TextColumn(disabled=True),
         "Intéressé": st.column_config.CheckboxColumn(),
         "Lien": st.column_config.LinkColumn(disabled=True),
@@ -53,9 +53,9 @@ updated_offers = st.data_editor(
 
 st.session_state['updated_offers'] = updated_offers
 
-offers_to_update = updated_offers[updated_offers['Intéressé'] != offers_to_display['Intéressé']]
+offers_to_update = updated_offers[( updated_offers['Entreprise'] != offers_to_display['Entreprise']) | (updated_offers['Intéressé'] != offers_to_display['Intéressé'])]
 for _, row in offers_to_update.iterrows():
-    update_offer_interest(row['offer_id'], row['Intéressé'])
+    update_offers(row['offer_id'], row['Entreprise'], row['Intéressé'])
 
 st.button("Postuler aux offres sélectionnées", on_click=apply_to_selected_offers)
 

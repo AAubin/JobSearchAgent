@@ -59,3 +59,5 @@ def application(offer_id, details=None):
     )
     return prompt
 
+def to_markdown(text):
+    return text.replace("\n", "  \n")

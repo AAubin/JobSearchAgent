@@ -37,3 +37,6 @@ L'app streamlit permet d'échanger avec l'agent, et de visualiser les offres sau
 pip install -r requirements.txt
 streamlit run app.py
 ```
+
+## Prochaine étape
+Docker et déploiement

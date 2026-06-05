@@ -1,6 +1,6 @@
 from langchain_core.tools import tool
 import uuid
-from database import save_offer, update_offer_interest
+from database import save_offer
 
 @tool
 def add_manual_offer(intitule: str, entreprise: str, lieu: str, lien: str, description: str) -> str:
@@ -16,6 +16,5 @@ def add_manual_offer(intitule: str, entreprise: str, lieu: str, lien: str, descr
         description: description de l'offre d'emploi
     """
     offer_id = uuid.uuid4().hex[:8].upper()
-    save_offer(offer_id, 'manual', intitule, entreprise, lieu, lien, description)
-    update_offer_interest(offer_id, 1)
+    save_offer(offer_id, 'manual', intitule, entreprise, lieu, lien, description, 1)
     return f"Offre ajoutée : {intitule} chez {entreprise} à {lieu}."

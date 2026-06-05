@@ -1,4 +1,7 @@
 import streamlit as st
+from src.database import init_db
+
+init_db()
 
 st.set_page_config(
     page_title="Agent pour la recherche d'emploi",

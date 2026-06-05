@@ -4,7 +4,7 @@ import streamlit as st
 from datetime import datetime
 from langchain_core.messages import AIMessageChunk
 from agent import creer_agent
-from utils import calculate_session_cost, rate_letter, application
+from utils import calculate_session_cost, rate_letter, application, to_markdown
 from database import save_session, update_session
 
 
@@ -57,15 +57,16 @@ def call_agent(prompt):
         placeholder = st.empty()
         full_text = ""
         for msg, metadata in agent.stream({"messages": [user_message]}, config=config, stream_mode="messages"):
-            if msg.content and isinstance(msg, AIMessageChunk):
+            print(metadata)
+            if msg.content and isinstance(msg, AIMessageChunk) and metadata.get("langgraph_node") == 'model':
                 if isinstance(msg.content, str):
                     text = msg.content
                 else:
-                    text = "".join(c.get("text", "") for c in msg.content if isinstance(c, dict))
+                    text = " ".join(c.get("text", "") for c in msg.content if isinstance(c, dict))
                 if text:
                     full_text += text
-                    placeholder.markdown(full_text + "▌")  
-        placeholder.markdown(full_text) 
+                    placeholder.markdown(to_markdown(full_text) + "▌")  
+        placeholder.markdown(to_markdown(full_text)) 
 
     st.session_state.display_messages.append({"role": "assistant", "content": full_text})
 
@@ -92,9 +93,9 @@ for message in st.session_state.display_messages:
         case "assistant":
             st.chat_message("assistant").markdown(message["content"])
         case "system":
-            if message.get("type") == "rating_widget" and st.session_state.pending_rating:
-                rating = st.slider("Veuillez évaluer la lettre de motivation générée (1-5) :", min_value=1, max_value=5, value=3)
-                st.button("Ok", on_click=lambda: on_click_rating(rating))
+            if message.get("type") == "rating_widget" and not message.get("done") and st.session_state.pending_rating:
+                rating = st.slider("Veuillez évaluer la lettre de motivation générée (1-5) :", min_value=1, max_value=5, value=3, key=f"rating_{id(message)}")
+                st.button("Ok", key=f"button_{id(message)}", on_click=lambda: on_click_rating(rating))
 
 user_prompt = st.chat_input("Tapez votre message ici...", disabled=st.session_state.pending_rating)
 

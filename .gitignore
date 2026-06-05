@@ -7,3 +7,4 @@ cv.pdf
 lettres/*
 test_api_francetravail.py
 jobsearch.db
+db_cleanup.py

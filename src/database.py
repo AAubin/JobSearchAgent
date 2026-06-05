@@ -4,8 +4,11 @@ from datetime import datetime, timedelta
 
 DB_PATH = Path(__file__).parent.parent / 'jobsearch.db'
 
+def _connect():
+    return sqlite3.connect(DB_PATH)
+
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS offers (
@@ -58,30 +61,30 @@ def init_db():
     conn.commit()
     conn.close()
 
-def save_offer(offer_id, source, position, entreprise, localisation, link, description=None):
+def save_offer(offer_id, source, position, entreprise, localisation, link, description=None, interested=0):
     ts = datetime.now().isoformat()
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
-        INSERT OR IGNORE INTO offers (offer_id, source, position, entreprise, localisation, link, description, date_recorded)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (offer_id, source, position, entreprise, localisation, link, description, ts))
+        INSERT OR IGNORE INTO offers (offer_id, source, position, entreprise, localisation, link, description, interested, date_recorded)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (offer_id, source, position, entreprise, localisation, link, description, interested, ts))
     conn.commit()
     conn.close()
 
-def update_offer_interest(offer_id, interested):
-    conn = sqlite3.connect(DB_PATH)
+def update_offers(offer_id, entreprise=None, interested=1):
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         UPDATE offers
-        SET interested = ?
+        SET entreprise = ?, interested = ?
         WHERE offer_id = ?
-    ''', (interested, offer_id))
+    ''', (entreprise, interested, offer_id))
     conn.commit()
     conn.close()
 
 def get_all_offers():
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         SELECT  offer_id, position, entreprise, localisation, interested, link, date_recorded
@@ -98,7 +101,7 @@ def get_all_offers():
     return []
 
 def get_offer_by_id(offer_id):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         SELECT offer_id, source, position, entreprise, localisation, link, description, interested, date_recorded
@@ -113,7 +116,7 @@ def get_offer_by_id(offer_id):
     return None
 
 def get_offer_interest(offer_id):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         SELECT interested
@@ -125,7 +128,7 @@ def get_offer_interest(offer_id):
     return result[0] if result else None
 
 def get_existing_offer_ids(offer_ids: list) -> set:
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     placeholders = ",".join(["?" for _ in offer_ids])
     c.execute(f"SELECT offer_id FROM offers WHERE offer_id IN ({placeholders})", offer_ids)
@@ -136,7 +139,7 @@ def get_existing_offer_ids(offer_ids: list) -> set:
 
 def save_letter(entreprise, path, nb_words=0, entreprise_is_present=False):
     ts = datetime.now().isoformat()
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         INSERT INTO letters (entreprise, path, nb_words, entreprise_is_present, date_creation)
@@ -146,7 +149,7 @@ def save_letter(entreprise, path, nb_words=0, entreprise_is_present=False):
     conn.close()
 
 def get_last_letter_id():
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('SELECT id_letter FROM letters ORDER BY date_creation DESC LIMIT 1')
     result = c.fetchone()
@@ -154,7 +157,7 @@ def get_last_letter_id():
     return result[0] if result else None
 
 def update_letter_rating(id_letter, note):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         UPDATE letters
@@ -166,7 +169,7 @@ def update_letter_rating(id_letter, note):
 
 
 def save_session(date_start, date_end, token_count, cost_usd):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         INSERT INTO sessions (date_start, date_end, inputs_tokens, output_tokens, cost_usd)
@@ -178,7 +181,7 @@ def save_session(date_start, date_end, token_count, cost_usd):
     return session_id
 
 def update_session(session_id, date_end, token_count, cost_usd):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         UPDATE sessions
@@ -189,7 +192,7 @@ def update_session(session_id, date_end, token_count, cost_usd):
     conn.close()
 
 def get_all_sessions():
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         SELECT id_session, date_start, date_end, inputs_tokens, output_tokens, cost_usd
@@ -206,7 +209,7 @@ def get_all_sessions():
 def save_application(offerDB_id, id_letter):
     ts = datetime.now().isoformat()
     ts_relance = (datetime.now() + timedelta(days=7)).isoformat()
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         INSERT OR IGNORE INTO applications (offer_id, id_letter, date_application, date_follow_up)
@@ -216,7 +219,7 @@ def save_application(offerDB_id, id_letter):
     conn.close()
 
 def get_all_applications():
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         SELECT o.offer_id, o.position, o.entreprise, o.localisation, o.link, o.source, l.id_letter, l.path, 
@@ -233,7 +236,7 @@ def get_all_applications():
         return [dict(zip(keys, r)) for r in results]
 
 def update_application(id_application, to_follow_up, statut):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _connect()
     c = conn.cursor()
     c.execute('''
         UPDATE applications

@@ -3,6 +3,8 @@ logging.getLogger("pdfminer").setLevel(logging.ERROR)
 import pdfplumber
 import yaml
 from pathlib import Path
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.outputs import LLMResult
 from tools.search_offers import get_offer_details
 from database import get_offer_by_id, get_last_letter_id, update_letter_rating
 
@@ -24,13 +26,6 @@ def load_resume(chemin: str = "cv.pdf") -> str:
                 page.extract_text() or "" for page in pdf.pages
             ).strip()
     return p.read_text(encoding="utf-8")
-
-def calculate_session_cost(token_count):
-    inputs_tokens = token_count["input_tokens"]
-    output_tokens = token_count["output_tokens"]
-    cost_input_tokens_by_million = 3.0 #USD
-    cost_output_tokens_by_million = 15.0 #USD
-    return (inputs_tokens * cost_input_tokens_by_million + output_tokens * cost_output_tokens_by_million) / 1000000
 
 def rate_letter(rating):
     last_letter_id = get_last_letter_id()
@@ -61,3 +56,24 @@ def application(offer_id, details=None):
 
 def to_markdown(text):
     return text.replace("\n", "  \n")
+
+
+class TokenCounterCallback(BaseCallbackHandler):
+    def __init__(self):
+        self.input_tokens = 0
+        self.output_tokens = 0
+
+    def on_llm_end(self, response: LLMResult, **kwargs):
+        usage = (response.llm_output or {}).get('usage', {})
+        self.input_tokens += usage.get('input_tokens', 0)
+        self.output_tokens += usage.get('output_tokens', 0)
+
+    @property
+    def cost(self):
+        cost_input_tokens_by_million = 3.0 #USD
+        cost_output_tokens_by_million = 15.0 #USD
+        return (self.input_tokens * cost_input_tokens_by_million + self.output_tokens * cost_output_tokens_by_million) / 1000000
+
+    def to_dict(self):
+        return {"input_tokens": self.input_tokens, "output_tokens": self.output_tokens}
+    

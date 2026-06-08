@@ -40,9 +40,9 @@ updated_offers = st.data_editor(
     column_order=('Postuler ?', "Intitulé", "Entreprise", "Lieu", "Intéressé", "Lien", "Recherché le", "offer_id"),
     column_config={
         "Postuler ?": st.column_config.CheckboxColumn(),
-        "Intitulé": st.column_config.TextColumn(disabled=True),
+        "Intitulé": st.column_config.TextColumn(),
         "Entreprise": st.column_config.TextColumn(),
-        "Lieu": st.column_config.TextColumn(disabled=True),
+        "Lieu": st.column_config.TextColumn(),
         "Intéressé": st.column_config.CheckboxColumn(),
         "Lien": st.column_config.LinkColumn(disabled=True),
         "Recherché le": st.column_config.DateColumn(disabled=True),
@@ -53,9 +53,13 @@ updated_offers = st.data_editor(
 
 st.session_state['updated_offers'] = updated_offers
 
-offers_to_update = updated_offers[( updated_offers['Entreprise'] != offers_to_display['Entreprise']) | (updated_offers['Intéressé'] != offers_to_display['Intéressé'])]
+offers_to_update = updated_offers[( updated_offers['Entreprise'] != offers_to_display['Entreprise'])
+                                   | (updated_offers['Intitulé'] != offers_to_display['Intitulé'])
+                                   | (updated_offers['Lieu'] != offers_to_display['Lieu'])
+                                   | (updated_offers['Intéressé'] != offers_to_display['Intéressé'])
+                                   ]
 for _, row in offers_to_update.iterrows():
-    update_offers(row['offer_id'], row['Entreprise'], row['Intéressé'])
+    update_offers(row['offer_id'], row['Entreprise'], row['Intitulé'], row['Lieu'], row['Intéressé'])
 
 st.button("Postuler aux offres sélectionnées", on_click=apply_to_selected_offers)
 

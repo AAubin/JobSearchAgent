@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from langchain_core.tools import tool
 from langchain_anthropic import ChatAnthropic
+from langchain_core.runnables import RunnableConfig
 from langchain_tavily import TavilySearch
 from dotenv import load_dotenv
 from docx import Document
@@ -64,7 +65,7 @@ def _extract_content(results) -> str:
         ])
     return str(results)
 
-def _search_company(nom_entreprise: str) -> str:
+def _search_company(nom_entreprise: str, config: RunnableConfig = None) -> str:
     if not nom_entreprise:
         return ""
     try:
@@ -74,7 +75,7 @@ def _search_company(nom_entreprise: str) -> str:
         search_results = _extract_content(official_website) + "\n\n" + _extract_content(press_articles)
         prompt_data = load_prompt("company_research")
         prompt = prompt_data["template"].format(nom_entreprise=nom_entreprise, search_results=search_results)
-        profil = llm_profile.invoke(prompt).content
+        profil = llm_profile.invoke(prompt, config=config).content
         return profil
     except Exception as e:
         print(f"Erreur lors de la recherche pour {nom_entreprise} : {e}")
@@ -84,7 +85,7 @@ def _escape_braces(text: str) -> str:
     return text.replace("{", "{{").replace("}", "}}")    
 
 @tool
-def write_cover_letter(description_offre: str, nom_entreprise: str = "", offer_id: str = "") -> str:
+def write_cover_letter(description_offre: str, nom_entreprise: str = "", offer_id: str = "", config: RunnableConfig = None) -> str:
     """
     Rédige une lettre de motivation personnalisée à partir du CV et de la description de l'offre,
     et la sauvegarde dans un fichier Word (.docx).
@@ -102,11 +103,11 @@ def write_cover_letter(description_offre: str, nom_entreprise: str = "", offer_i
         cv=cv, 
         nom_entreprise=nom_entreprise or 'Non précisée', 
         description_offre=_escape_braces(description_offre), 
-        informations_entreprise=_escape_braces(_search_company(nom_entreprise)),
+        informations_entreprise=_escape_braces(_search_company(nom_entreprise, config=config)),
         date=date
     )
 
-    lettre = llm_letter.invoke(prompt).content
+    lettre = llm_letter.invoke(prompt, config=config).content
     chemin = _save_docx(lettre, nom_entreprise)
     nb_mots = len(lettre.split())
     company_is_present = nom_entreprise.strip().lower() in lettre.lower() if nom_entreprise else False

@@ -1,0 +1,7 @@
+version: "1.0"
+description: "Extraction des détails d'une offre d'emploi à partir d'un extract tavily"
+template: |
+  Extrais de ce texte : intitulé du poste, entreprise, lieu, description (détails sur l'entreprise, les missions, les compétences requises, le profil recherché, etc.).
+  Réponds en JSON avec les clés : intitule, entreprise, lieu, description. N'utilise pas de balises markdown, renvoie uniquement le json brut.
+
+  {raw_content}

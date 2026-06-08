@@ -4,7 +4,7 @@ import streamlit as st
 from datetime import datetime
 from langchain_core.messages import AIMessageChunk
 from agent import creer_agent
-from utils import calculate_session_cost, rate_letter, application, to_markdown
+from utils import rate_letter, application, to_markdown, TokenCounterCallback
 from database import save_session, update_session
 
 
@@ -18,12 +18,13 @@ def session_state_init():
         }]
     if "session_id" not in st.session_state:
         st.session_state.session_id = datetime.now().strftime("session_%Y%m%d")
-    if "token_count" not in st.session_state:
-        st.session_state.token_count = {"input_tokens": 0, "output_tokens": 0}
     if "pending_rating" not in st.session_state:
         st.session_state.pending_rating = False
     if "db_session_id" not in st.session_state:
         st.session_state.db_session_id = None
+    if "token_callback" not in st.session_state:
+        st.session_state.token_callback = TokenCounterCallback()
+
 
 def on_click_rating(rating):
     rate_letter(rating)
@@ -32,13 +33,9 @@ def on_click_rating(rating):
     st.session_state.display_messages.append(last_message)
     st.session_state.pending_rating = False
 
-def session_token_management(db_session_id, response_message):
-    tokens_data = response_message.usage_metadata or {}
-    token_count = st.session_state.token_count
-    token_count["input_tokens"] += tokens_data.get("input_tokens", 0)
-    token_count["output_tokens"] += tokens_data.get("output_tokens", 0)
-    st.session_state.token_count = token_count
-    cost = calculate_session_cost(token_count)
+def session_token_management(db_session_id):
+    token_count = st.session_state.token_callback.to_dict()
+    cost = st.session_state.token_callback.cost
     if db_session_id is None:
         return save_session(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), None, token_count, cost)
     else:
@@ -51,33 +48,40 @@ def call_agent(prompt):
     config = {
         "configurable": {"thread_id": st.session_state.session_id},
         "run_name": st.session_state.session_id,
+        "callbacks": [st.session_state.token_callback]
     }
     user_message = {"role": "user", "content": prompt.strip()}
     with st.chat_message("assistant"):
         placeholder = st.empty()
         full_text = ""
+        current_msg_id = None
         for msg, metadata in agent.stream({"messages": [user_message]}, config=config, stream_mode="messages"):
-            print(metadata)
             if msg.content and isinstance(msg, AIMessageChunk) and metadata.get("langgraph_node") == 'model':
+                if msg.id != current_msg_id:
+                    if current_msg_id is not None:
+                        full_text += "\n\n"
+                    current_msg_id = msg.id
                 if isinstance(msg.content, str):
                     text = msg.content
                 else:
-                    text = " ".join(c.get("text", "") for c in msg.content if isinstance(c, dict))
+                    text = "".join(c.get("text", "") for c in msg.content if isinstance(c, dict))
                 if text:
                     full_text += text
                     placeholder.markdown(to_markdown(full_text) + "▌")  
         placeholder.markdown(to_markdown(full_text)) 
 
     st.session_state.display_messages.append({"role": "assistant", "content": full_text})
+    st.session_state.db_session_id = session_token_management(st.session_state.db_session_id)
 
     final_state = agent.get_state(config)
-    last_message = final_state.values["messages"][-1]
     all_messages = final_state.values["messages"]
+    last_user_idx = max(
+        (i for i, m in enumerate(all_messages) if m.type == "human"),
+        default=-1
+    )
+    recent_messages = all_messages[last_user_idx + 1:]
 
-    st.session_state.db_session_id = session_token_management(st.session_state.db_session_id, last_message)
-
-    letter_interaction = any(m.type == "tool" and m.name == "write_cover_letter" for m in all_messages)
-    # search_interaction = any(m.type == "tool" and m.name == "search_offer" for m in response["messages"])
+    letter_interaction = any(m.type == "tool" and m.name == "write_cover_letter" for m in recent_messages)
     if letter_interaction:
         st.session_state.display_messages.append({"role": "system", "type": 'rating_widget', "done": False})
         st.session_state.pending_rating = True
@@ -99,14 +103,22 @@ for message in st.session_state.display_messages:
 
 user_prompt = st.chat_input("Tapez votre message ici...", disabled=st.session_state.pending_rating)
 
-if "offers_to_apply" in st.session_state:
-    offers_to_apply = st.session_state.pop('offers_to_apply')
-    for _, row in offers_to_apply.iterrows():
-        content = f"Candidature à l'offre {row['Intitulé']} chez {row['Entreprise']}..."
-        st.session_state.display_messages.append({"role": "user", "content": content})
-        st.chat_message("user").markdown(content)
-        auto_prompt = application(row['offer_id'])
-        call_agent(auto_prompt)
+if "offers_to_apply" in st.session_state and not st.session_state.pending_rating:
+    offers_to_apply = st.session_state.offers_to_apply
+    row = offers_to_apply.iloc[0]
+    remaining = offers_to_apply.iloc[1:].reset_index(drop=True)
+    
+    if remaining.empty:
+        del st.session_state.offers_to_apply
+    else:
+        st.session_state.offers_to_apply = remaining
+    
+    content = f"Candidature à l'offre {row['Intitulé']} chez {row['Entreprise']}..."
+    st.session_state.display_messages.append({"role": "user", "content": content})
+    st.chat_message("user").markdown(content)
+    auto_prompt = application(row['offer_id'])
+    call_agent(auto_prompt)
+    
     st.rerun()
 
 if user_prompt:
@@ -116,6 +128,6 @@ if user_prompt:
     call_agent(user_prompt)
 
 with st.sidebar:
-    st.metric("Tokens utilisés", f"{st.session_state.token_count['input_tokens'] + st.session_state.token_count['output_tokens']}")
-    cost = calculate_session_cost(st.session_state.token_count)
-    st.metric("Coût estimé de la session", f"${cost:.5f}")
+    cb = st.session_state.token_callback
+    st.metric("Tokens utilisés", cb.input_tokens + cb.output_tokens)
+    st.metric("Coût estimé de la session", f"${cb.cost:.5f}")

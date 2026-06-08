@@ -72,14 +72,14 @@ def save_offer(offer_id, source, position, entreprise, localisation, link, descr
     conn.commit()
     conn.close()
 
-def update_offers(offer_id, entreprise=None, interested=1):
+def update_offers(offer_id, entreprise=None, intitule=None, lieu=None, interested=1):
     conn = _connect()
     c = conn.cursor()
     c.execute('''
         UPDATE offers
-        SET entreprise = ?, interested = ?
+        SET position = ?, entreprise = ?, localisation = ?,  interested = ?
         WHERE offer_id = ?
-    ''', (entreprise, interested, offer_id))
+    ''', (intitule, entreprise, lieu, interested, offer_id))
     conn.commit()
     conn.close()
 

@@ -128,6 +128,7 @@ if user_prompt:
     call_agent(user_prompt)
 
 with st.sidebar:
+    st.header("Session en cours :")
     cb = st.session_state.token_callback
     st.metric("Tokens utilisés", cb.input_tokens + cb.output_tokens)
     st.metric("Coût estimé de la session", f"${cb.cost:.5f}")

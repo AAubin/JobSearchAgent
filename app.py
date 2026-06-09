@@ -1,5 +1,6 @@
 import streamlit as st
-from src.database import init_db
+from src.database import init_db, get_applications_to_follow
+from datetime import datetime, timedelta, date
 
 init_db()
 
@@ -17,4 +18,14 @@ pages = [
     st.Page("streamlit_pages/5_Sessions.py", title="Résumé des sessions", icon="📊"),
 ]
 pg = st.navigation(pages)
+
+applications_to_follow = get_applications_to_follow()
+if applications_to_follow:
+    with st.sidebar:
+        content = "**Candidatures à relancer cette semaine :**\n\n"
+        for application in applications_to_follow:
+            content += f"- **{application[1]}** :\n\n {application[0]}\n"
+        st.warning(content)
+        st.divider()
+
 pg.run()

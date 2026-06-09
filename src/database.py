@@ -235,6 +235,23 @@ def get_all_applications():
                 "id_application", "Postulé le", "A relancer", "Date de relance", "Statut"]
         return [dict(zip(keys, r)) for r in results]
 
+def get_applications_to_follow():
+    conn = _connect()
+    c = conn.cursor()
+    c.execute('''
+        SELECT o.position, o.entreprise, a.to_follow_up, a.date_follow_up, o.offer_id
+        FROM applications a
+        LEFT JOIN offers o ON a.offer_id = o.offer_id
+        WHERE a.to_follow_up = 1
+        AND date_follow_up IS NOT NULL
+        AND strftime('%Y-%W', date_follow_up) = strftime('%Y-%W', 'now')
+    ''')
+    results = c.fetchall()
+    conn.close()
+    if results:
+        return [r[:2] for r in results]
+    return None
+
 def update_application(id_application, to_follow_up, statut):
     conn = _connect()
     c = conn.cursor()

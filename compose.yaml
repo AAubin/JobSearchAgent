@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env                    # injecte les variables d'environnement sans les mettre dans l'image
+    volumes:
+      - ./cv.pdf:/app/cv.pdf
+      - ./user_profile.yaml:/app/user_profile.yaml
+      - ./jobsearch.db:/app/jobsearch.db
+      - ./lettres:/app/lettres

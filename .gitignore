@@ -8,3 +8,4 @@ lettres/*
 test_api_francetravail.py
 jobsearch.db
 db_cleanup.py
+user_profile.yaml

@@ -1,0 +1,68 @@
+version: 1.0
+description: Profil utilisateur
+
+postes: 
+  type: tags
+  label: Postes visés
+
+secteurs_activite_souhaites:
+  type: tags
+  label: Secteurs d'activité souhaités
+
+secteurs_activite_exclus: 
+  type: tags
+  label: Secteurs d'activité exclus
+
+entreprises_ciblees:
+  type: tags
+  label: Entreprises ciblées
+
+localisations_souhaitees:
+  type: tags
+  label: Localisations souhaitées
+
+type_de_contrat:
+  type: multiselect
+  label: Type de contrat
+  options:
+    - CDI
+    - CDD
+    - Stage
+    - Alternance
+
+niveau_experience: 
+  type: multiselect
+  label: Niveau dexperience
+  options:
+    - Débutant
+    - Confirmé
+    - Expert
+
+teletravail: 
+  type: multiselect
+  label: Télétravail souhaité
+  options:
+    - Oui
+    - Non
+    - Partiel
+
+disponibilite:
+  type: text
+  label: Disponibilité
+
+pretentions_salariales:
+  type: text
+  label: Prétentions salariales
+
+competences_cles:
+  type: tags
+  label: Compétences clés
+
+points_forts:
+  type: textarea
+  label: Points forts
+
+points_faibles:
+  type: textarea
+  label: Points faibles
+

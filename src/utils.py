@@ -16,6 +16,20 @@ def load_prompt(name: str) -> str:
     with open(prompt_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+def load_profile(file="user_profile.yaml"):
+    if file == "user_profile.yaml":
+        path = Path(file)
+    else:
+        path = Path(__file__).parent / "config" / file
+    if not path.exists():
+        return {}
+    with open(path, 'r', encoding='utf-8') as f:
+        return yaml.safe_load(f) or {}
+    
+def save_profile(data, file="user_profile.yaml"):
+    with open(file, 'w', encoding='utf-8') as f:
+        yaml.safe_dump(data, f, allow_unicode=True, sort_keys=False)
+
 def load_resume(chemin: str = "cv.pdf") -> str:
     p = Path(chemin)
     if not p.exists():

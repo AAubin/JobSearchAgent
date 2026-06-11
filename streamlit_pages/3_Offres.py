@@ -34,6 +34,7 @@ offers_to_display = all_offers.copy()
 for c, values in filters.items():
     if values:
         offers_to_display = offers_to_display[offers_to_display[c].isin(values)]
+offers_to_display = offers_to_display.sort_values('Recherché le', ascending=False).reset_index(drop=True)
 
 updated_offers = st.data_editor(
     offers_to_display,

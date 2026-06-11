@@ -23,8 +23,9 @@ if all_applications.empty:
     st.stop()
 all_applications['Postulé le'] = all_applications['Postulé le'].apply(lambda x: datetime.fromisoformat(x).date())
 all_applications['Date de relance'] = all_applications['Date de relance'].apply(lambda x: datetime.fromisoformat(x).date())
-all_applications['Lettre'] = all_applications['path'].apply(lambda x: Path(x).name.split('.')[0] if x else None)
+all_applications['Lettre'] = all_applications['path'].apply(lambda x: Path(x).name.split('\\')[-1].split('.')[0] if x else None)
 
+all_applications = all_applications.sort_values('Postulé le', ascending=False).reset_index(drop=True)
 st.session_state['applications_before_update'] = all_applications
 
 updated_applications = st.data_editor(

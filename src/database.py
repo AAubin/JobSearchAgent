@@ -244,7 +244,10 @@ def get_applications_to_follow():
         LEFT JOIN offers o ON a.offer_id = o.offer_id
         WHERE a.to_follow_up = 1
         AND date_follow_up IS NOT NULL
-        AND strftime('%Y-%W', date_follow_up) = strftime('%Y-%W', 'now')
+        AND (
+              date(date_follow_up) < date('now')
+              OR strftime('%Y-%W', date_follow_up) = strftime('%Y-%W', 'now')
+        )
     ''')
     results = c.fetchall()
     conn.close()

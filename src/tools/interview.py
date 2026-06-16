@@ -3,9 +3,10 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.runnables import RunnableConfig
 from dotenv import load_dotenv
 from utils import load_prompt, load_resume
+from config.llm_base_models import AGENT_MODEL
 
 load_dotenv()
-llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.5)
+llm = ChatAnthropic(model=AGENT_MODEL, temperature=0.5)
 
 @tool
 def interview_advice(description_poste: str, type_entretien: str = "général", config: RunnableConfig = None) -> str:

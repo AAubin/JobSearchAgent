@@ -10,10 +10,11 @@ from tools.interview import interview_advice
 from tools.add_manual_offer import add_manual_offer
 
 from utils import load_prompt, load_profile
+from config.llm_base_models import AGENT_MODEL
 import yaml
 
 def creer_agent() -> CompiledStateGraph:
-    llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0)
+    llm = ChatAnthropic(model=AGENT_MODEL, temperature=0)
     tools = [search_offer, resume_optimizer, write_cover_letter, interview_advice, add_manual_offer]
 
     user_profile = load_profile()

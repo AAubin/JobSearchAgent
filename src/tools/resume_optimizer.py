@@ -3,9 +3,10 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.runnables import RunnableConfig
 from dotenv import load_dotenv
 from utils import load_prompt, load_resume
+from config.llm_base_models import AGENT_MODEL
 
 load_dotenv()
-llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.3)
+llm = ChatAnthropic(model=AGENT_MODEL, temperature=0.3)
 
 @tool
 def resume_optimizer(description_offre: str, nom_entreprise: str = "", config: RunnableConfig = None) -> str:

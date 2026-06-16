@@ -3,6 +3,7 @@ from tavily import TavilyClient
 from langchain_anthropic import ChatAnthropic
 from langchain_core.runnables import RunnableConfig
 from utils import load_prompt
+from config.llm_base_models import AGENT_MODEL
 import uuid
 import json
 import os
@@ -32,7 +33,7 @@ def add_manual_offer(lien: str, intitule: str = "", entreprise: str = "", lieu: 
             offer_extract = tavily.extract(urls=[lien], query="job title, company, location and description of a job offer")
             if offer_extract['results']:
                 offer_content = offer_extract['results'][0]['raw_content']
-                llm = ChatAnthropic(model="claude-sonnet-4-20250514", temperature=0.0)
+                llm = ChatAnthropic(model=AGENT_MODEL, temperature=0.0)
                 prompt_data = load_prompt('manual_offer')
                 prompt = prompt_data['template'].format(raw_content=offer_content)
                 content = llm.invoke(prompt, config=config).content

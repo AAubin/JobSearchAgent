@@ -7,7 +7,7 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.outputs import LLMResult
 from tools.search_offers import get_offer_details
 from database import get_offer_by_id, get_last_letter_id, update_letter_rating
-
+from config.llm_base_models import AGENT_MODEL, LETTER_MODEL, AGENT_MODEL_COST, LETTER_MODEL_COST
 
 def load_prompt(name: str) -> str:
     prompt_path = Path(__file__).parent / "prompts" / f"{name}.yaml"
@@ -71,23 +71,40 @@ def application(offer_id, details=None):
 def to_markdown(text):
     return text.replace("\n", "  \n")
 
+PRICING = {
+    AGENT_MODEL: AGENT_MODEL_COST,
+    LETTER_MODEL: LETTER_MODEL_COST
+}
 
 class TokenCounterCallback(BaseCallbackHandler):
     def __init__(self):
-        self.input_tokens = 0
-        self.output_tokens = 0
+        self.tokens_by_model = {}
 
     def on_llm_end(self, response: LLMResult, **kwargs):
-        usage = (response.llm_output or {}).get('usage', {})
-        self.input_tokens += usage.get('input_tokens', 0)
-        self.output_tokens += usage.get('output_tokens', 0)
+        llm_output = response.llm_output or {}
+        model = llm_output.get('model', 'unknown')
+        usage = llm_output.get('usage', {})
+        if model not in self.tokens_by_model:
+            self.tokens_by_model[model] = {'input': 0, 'output': 0}
+        self.tokens_by_model[model]['input'] += usage.get('input_tokens', 0)
+        self.tokens_by_model[model]['output'] += usage.get('output_tokens', 0)
 
     @property
     def cost(self):
-        cost_input_tokens_by_million = 3.0 #USD
-        cost_output_tokens_by_million = 15.0 #USD
-        return (self.input_tokens * cost_input_tokens_by_million + self.output_tokens * cost_output_tokens_by_million) / 1000000
+        total = 0.0
+        for model, tokens in self.tokens_by_model.items():
+            cost_in, cost_out = PRICING.get(model, (3.0, 15.0))
+            total += (tokens['input']*cost_in + tokens['output']*cost_out)/1000000
+        return total
 
+    @property
+    def input_tokens(self):
+        return sum(t['input'] for t in self.tokens_by_model.values())
+    
+    @property
+    def output_tokens(self):
+        return sum(t['output'] for t in self.tokens_by_model.values())
+    
     def to_dict(self):
         return {"input_tokens": self.input_tokens, "output_tokens": self.output_tokens}
     

@@ -3,7 +3,7 @@ sys.path.insert(0, 'src')
 import streamlit as st
 import pandas as pd
 from database import get_all_sessions
-
+from config.llm_base_models import AGENT_MODEL, LETTER_MODEL, AGENT_MODEL_COST, LETTER_MODEL_COST
 
 st.title("Suivi des tokens consommés et des coûts associés")
 
@@ -35,7 +35,13 @@ st.dataframe(
 )
 
 st.sidebar.info(
-    "**Tarifs Claude Sonnet utilisés**  \n"
-    "- Input : $3.00 / 1M tokens  \n"
-    "- Output : $15.00 / 1M tokens"
+    "**Tarifs et modèles utilisés :**  \n"
+    f"- Modèle agent :  \n"
+    f"  `{AGENT_MODEL}`  \n"
+    f"  - Input : ${AGENT_MODEL_COST[0]} / 1M tokens  \n"
+    f"  - Output : ${AGENT_MODEL_COST[1]} / 1M tokens  \n"
+    f"- Modèle lettres :  \n"
+    f"  `{LETTER_MODEL}`  \n"
+    f"  - Input : ${LETTER_MODEL_COST[0]} / 1M tokens  \n"
+    f"  - Output : ${LETTER_MODEL_COST[1]} / 1M tokens"
 )

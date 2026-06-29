@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0, 'src')
 import streamlit as st
 from datetime import datetime
+from anthropic import BadRequestError
 from langchain_core.messages import AIMessageChunk
 from agent import creer_agent
 from utils import rate_letter, application, to_markdown, TokenCounterCallback
@@ -51,24 +52,31 @@ def call_agent(prompt):
         "callbacks": [st.session_state.token_callback]
     }
     user_message = {"role": "user", "content": prompt.strip()}
-    with st.chat_message("assistant"):
-        placeholder = st.empty()
-        full_text = ""
-        current_msg_id = None
-        for msg, metadata in agent.stream({"messages": [user_message]}, config=config, stream_mode="messages"):
-            if msg.content and isinstance(msg, AIMessageChunk) and metadata.get("langgraph_node") == 'model':
-                if msg.id != current_msg_id:
-                    if current_msg_id is not None:
-                        full_text += "\n\n"
-                    current_msg_id = msg.id
-                if isinstance(msg.content, str):
-                    text = msg.content
-                else:
-                    text = "".join(c.get("text", "") for c in msg.content if isinstance(c, dict))
-                if text:
-                    full_text += text
-                    placeholder.markdown(to_markdown(full_text) + "▌")  
-        placeholder.markdown(to_markdown(full_text)) 
+    try:
+        with st.chat_message("assistant"):
+            placeholder = st.empty()
+            full_text = ""
+            current_msg_id = None
+            for msg, metadata in agent.stream({"messages": [user_message]}, config=config, stream_mode="messages"):
+                if msg.content and isinstance(msg, AIMessageChunk) and metadata.get("langgraph_node") == 'model':
+                    if msg.id != current_msg_id:
+                        if current_msg_id is not None:
+                            full_text += "\n\n"
+                        current_msg_id = msg.id
+                    if isinstance(msg.content, str):
+                        text = msg.content
+                    else:
+                        text = "".join(c.get("text", "") for c in msg.content if isinstance(c, dict))
+                    if text:
+                        full_text += text
+                        placeholder.markdown(to_markdown(full_text) + "▌")
+            placeholder.markdown(to_markdown(full_text))
+    except BadRequestError as e:
+        if "credit balance is too low" in str(e):
+            st.error("Crédits Anthropic insuffisants. Rechargez votre compte sur [console.anthropic.com](https://console.anthropic.com).")
+        else:
+            raise
+        return
 
     st.session_state.display_messages.append({"role": "assistant", "content": full_text})
     st.session_state.db_session_id = session_token_management(st.session_state.db_session_id)

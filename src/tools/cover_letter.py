@@ -14,7 +14,7 @@ from utils import load_prompt, load_resume
 from config.llm_base_models import AGENT_MODEL, LETTER_MODEL
 
 load_dotenv()
-llm_letter = ChatAnthropic(model=LETTER_MODEL, temperature=0.3)
+llm_letter = ChatAnthropic(model=LETTER_MODEL)
 llm_profile = ChatAnthropic(model=AGENT_MODEL, temperature=0.0)
 
 OUTPUT_DIR = Path(__file__).parent.parent.parent  / "lettres"

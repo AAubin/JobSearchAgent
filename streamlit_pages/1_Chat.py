@@ -5,7 +5,7 @@ from datetime import datetime
 from anthropic import BadRequestError
 from langchain_core.messages import AIMessageChunk
 from agent import creer_agent
-from utils import rate_letter, application, to_markdown, TokenCounterCallback
+from utils import rate_letter, application, to_markdown, get_resume_lists, get_saved_cv_name, save_selected_cv_name, TokenCounterCallback
 from database import save_session, update_session
 
 
@@ -136,6 +136,26 @@ if user_prompt:
     call_agent(user_prompt)
 
 with st.sidebar:
+    st.header("CV:")
+    all_resume = get_resume_lists()
+    saved_cv_name = get_saved_cv_name()
+    if not all_resume:
+        st.warning("Aucun CV trouvé dans le dossier 'CVs'. Veuillez ajouter un fichier PDF de CV pour générer des lettres de motivation.")
+    else:
+        if saved_cv_name not in all_resume:
+            st.error(f"Le CV sélectionné '{saved_cv_name}' n'a pas été trouvé. Veuillez sélectionner un CV valide.")
+            saved_cv_name = None
+        cv_index = all_resume.index(saved_cv_name) if saved_cv_name else 0
+        selected_cv = st.selectbox(
+            "Sélectionnez le CV à utiliser pour la génération de lettres de motivation :",
+            options=get_resume_lists(),
+            key="selected_cv",
+            index=cv_index,
+            help="Le CV sélectionné sera utilisé pour générer des lettres de motivation personnalisées et des propositions de modifications."
+        )
+        if selected_cv != saved_cv_name:
+            save_selected_cv_name(selected_cv)
+    st.divider()
     st.header("Session en cours :")
     cb = st.session_state.token_callback
     st.metric("Tokens utilisés", cb.input_tokens + cb.output_tokens)

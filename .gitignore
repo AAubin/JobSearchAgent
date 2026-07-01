@@ -3,7 +3,7 @@
 .env
 __pycache__/
 *.pyc
-cv.pdf
+CVs/*
 lettres/*
 test_api_francetravail.py
 jobsearch.db

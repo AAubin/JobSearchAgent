@@ -30,16 +30,37 @@ def save_profile(data, file="user_profile.yaml"):
     with open(file, 'w', encoding='utf-8') as f:
         yaml.safe_dump(data, f, allow_unicode=True, sort_keys=False)
 
-def load_resume(chemin: str = "cv.pdf") -> str:
-    p = Path(chemin)
+def load_resume() -> str:
+    cv_name = get_saved_cv_name()
+    p = Path(__file__).parent.parent / "CVs" / f"{cv_name}.pdf"
     if not p.exists():
         return "CV non trouvé."
-    if p.suffix.lower() == ".pdf":
-        with pdfplumber.open(p) as pdf:
-            return "\n".join(
-                page.extract_text() or "" for page in pdf.pages
-            ).strip()
-    return p.read_text(encoding="utf-8")
+    with pdfplumber.open(p) as pdf:
+        return "\n".join(
+            page.extract_text() or "" for page in pdf.pages
+        ).strip()
+
+
+def get_saved_cv_name() -> str:
+    path = Path(__file__).parent.parent / "cv_config.yaml"
+    if not path.exists():
+        return None
+    with open(path, 'r', encoding='utf-8') as f:
+        cv_config = yaml.safe_load(f) or {}
+    cv_name = cv_config.get("selected_cv_name", "")
+    return cv_name
+
+def save_selected_cv_name(cv_name: str):
+    path = Path(__file__).parent.parent / "cv_config.yaml"
+    cv_config = {"selected_cv_name": cv_name}
+    with open(path, 'w', encoding='utf-8') as f:
+        yaml.safe_dump(cv_config, f, allow_unicode=True, sort_keys=False)
+
+def get_resume_lists() -> list:
+    cv_dir = Path(__file__).parent.parent / "CVs"
+    if not cv_dir.exists():
+        return []
+    return [f.stem for f in cv_dir.iterdir() if f.is_file() and f.suffix.lower() == ".pdf"]
 
 def rate_letter(rating):
     last_letter_id = get_last_letter_id()
